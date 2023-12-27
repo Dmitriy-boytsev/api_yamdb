@@ -1,19 +1,62 @@
-from django.contrib.auth import get_user_model
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .validators import validate_year
 
-
-User = get_user_model()
 TITLE_LIMIT = 30
+
+
+class CustomUser(AbstractUser):
+    class RoleChoices(models.TextChoices):
+        USER = 'user'
+        ADMIN = 'admin'
+        MODERATOR = 'moderator'
+
+    username = models.CharField(
+        'Имя пользователя',
+        unique=True,
+        max_length=100
+    )
+    email = models.EmailField(
+        'Email',
+        unique=True,
+        max_length=150
+    )
+    role = models.CharField(
+        'Роль',
+        choices=RoleChoices.choices,
+        default=RoleChoices.USER,
+    )
+    bio = models.TextField(
+        'Биография',
+        blank=True,
+    )
+    first_name = models.CharField(
+        'Имя', blank=True,
+        max_length=100
+    )
+    last_name = models.CharField(
+        'Фамилия',
+        blank=True,
+        max_length=100
+    )
+
+    def __str__(self):
+        return self.username
 
 
 class Category(models.Model):
     """Модель категории."""
 
-    title = models.CharField('Заголовок', max_length=200)
-    slug = models.SlugField('Идентификатор', unique=True)
+    title = models.CharField(
+        'Заголовок',
+        max_length=200
+    )
+    slug = models.SlugField(
+        'Идентификатор',
+        unique=True
+    )
 
     class Meta:
         verbose_name = 'категория'
@@ -26,8 +69,14 @@ class Category(models.Model):
 class Genre(models.Model):
     """Модель жанра."""
 
-    title = models.CharField('Заголовок', max_length=200)
-    slug = models.SlugField('Идентификатор', unique=True)
+    title = models.CharField(
+        'Заголовок',
+        max_length=200
+    )
+    slug = models.SlugField(
+        'Идентификатор',
+        unique=True
+    )
 
     class Meta:
         verbose_name = 'жанр'
@@ -40,8 +89,14 @@ class Genre(models.Model):
 class Title(models.Model):
     """Модель произведения."""
 
-    name = models.CharField('Название произведения', max_length=200)
-    year = models.IntegerField('Год выхода', validators=(validate_year,))
+    name = models.CharField(
+        'Название произведения',
+        max_length=200
+    )
+    year = models.IntegerField(
+        'Год выхода',
+        validators=(validate_year,)
+    )
     description = models.TextField('Описание')
     category = models.ForeignKey(
         Category,
@@ -70,7 +125,7 @@ class Review(models.Model):
     )
     text = models.TextField('Текст отзыва')
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         verbose_name='Автор отзыва'
     )
@@ -101,7 +156,7 @@ class Comment(models.Model):
     """Модель комментария."""
 
     author = models.ForeignKey(
-        User,
+        CustomUser,
         on_delete=models.CASCADE,
         verbose_name='Автор комментария'
     )
