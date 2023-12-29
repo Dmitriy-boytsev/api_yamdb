@@ -1,5 +1,4 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.utils import IntegrityError
@@ -10,15 +9,16 @@ from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from api.permissions import IsAdminAuthorModeratorOrReadOnly, IsAdminOrReadOnly
+from api.permissions import (
+    IsAdminAuthorModeratorOrReadOnly, IsAdminOrReadOnly, User
+)
 from api.mixins import CreateListDestroyViewSet
-from api_yamdb.api.serializers import SignUpSerializer
+from api.serializers import SignUpSerializer
 from api.serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
     ReviewSerializer, TitleCreateSerializer, TitleReadSerializer
 )
 from reviews.models import Category, Comment, Genre, Review, Title
-
 
 
 @api_view(['POST'])
