@@ -27,6 +27,7 @@ class CustomUser(AbstractUser):
         'Роль',
         choices=RoleChoices.choices,
         default=RoleChoices.USER,
+        max_length=100
     )
     bio = models.TextField(
         'Биография',
@@ -166,7 +167,9 @@ class Comment(models.Model):
         verbose_name='Комментарий к отзыву'
     )
     text = models.TextField('Текст комментария')
-    pub_date = models.DateTimeField('Дата комментария', auto_now_add=True)
+    pub_date = models.DateTimeField(
+        'Дата комментария', auto_now_add=True
+    )
 
     class Meta:
         default_related_name = 'comments'
