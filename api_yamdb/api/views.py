@@ -1,10 +1,9 @@
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, viewsets, status
+from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.permissions import AllowAny
@@ -12,18 +11,17 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 
-from api_yamdb.api.mixins import CreateListDestroyViewSet
-from api_yamdb.api.permissions import IsAdminAuthorModeratorOrReadOnly, IsAdminOrReadOnly
-from api_yamdb.api.permissions import IsAdminOnly
-from api_yamdb.api.serializers import (
+from api.mixins import CreateListDestroyViewSet
+from api.permissions import IsAdminAuthorModeratorOrReadOnly, IsAdminOrReadOnly, IsAdminOnly
+from api.serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
-    ReviewSerializer, TitleCreateSerializer, TitleReadSerializer
+    ReviewSerializer, TitleCreateSerializer, TitleReadSerializer,
+    SignUpSerializer, TokenSerializer, UserSerializer,
 )
-from api_yamdb.api.serializers import SignUpSerializer, TokenSerializer, UserSerializer
+from api_yamdb.api.serializers import SignUpSerializer
 from api_yamdb.reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
-
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
