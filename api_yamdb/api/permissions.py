@@ -1,6 +1,7 @@
+from django.contrib.auth import get_user_model
 from rest_framework import permissions
 
-from api_yamdb.users.models import User
+User = get_user_model()
 
 
 class IsAdminOnly(permissions.BasePermission):

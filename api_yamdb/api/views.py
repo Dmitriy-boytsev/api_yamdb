@@ -6,19 +6,23 @@ from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from rest_framework import filters, viewsets, status
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.pagination import LimitOffsetPagination, PageNumberPagination
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework.viewsets import ModelViewSet
+from rest_framework_simplejwt.tokens import AccessToken
 
-from api.permissions import IsAdminAuthorModeratorOrReadOnly, IsAdminOrReadOnly
-from api.mixins import CreateListDestroyViewSet
-from api_yamdb.api.serializers import SignUpSerializer
-from api.serializers import (
+from api_yamdb.api.mixins import CreateListDestroyViewSet
+from api_yamdb.api.permissions import IsAdminAuthorModeratorOrReadOnly, IsAdminOrReadOnly
+from api_yamdb.api.permissions import IsAdminOnly
+from api_yamdb.api.serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
     ReviewSerializer, TitleCreateSerializer, TitleReadSerializer
 )
-from reviews.models import Category, Comment, Genre, Review, Title
+from api_yamdb.api.serializers import SignUpSerializer, TokenSerializer, UserSerializer
+from api_yamdb.reviews.models import Category, Comment, Genre, Review, Title
 
+User = get_user_model()
 
 
 @api_view(['POST'])
@@ -50,6 +54,55 @@ def signup(request):
         )
         return Response(serializer.data, status=status.HTTP_200_OK)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def get_jwt_token(request):
+    """Получение JWT-токена."""
+    serializer = TokenSerializer(data=request.data)
+    if serializer.is_valid():
+        username = serializer.validated_data['username']
+        confirm_code = serializer.validated_data['confirmation_code']
+        user = get_object_or_404(User, username=username)
+
+        if default_token_generator.check_token(user, confirm_code):
+            token = AccessToken.for_user(user)
+            return Response({'token': token}, status=status.HTTP_200_OK)
+        return Response(
+            'Ошибка получения кода подтверждения. Попробуйте еще раз.',
+            status=status.HTTP_400_BAD_REQUEST
+        )
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET', 'PATCH'])
+def user_profile(request):
+    """Персональная страница пользователя."""
+    current_user = request.user
+    if request.method == 'PATCH':
+        serializer = UserSerializer(
+            current_user,
+            data=request.data,
+            partial=True,
+        )
+        serializer.is_valid(raise_exception=True)
+        serializer.save(role=current_user.role)
+    serializer = UserSerializer(current_user)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UserViewSet(ModelViewSet):
+    """Вьюсет для работы с моделью User."""
+
+    http_method_names = ['get', 'post', 'head', 'patch', 'delete']
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    lookup_field = 'username'
+    permission_classes = (IsAdminOnly,)
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('username',)
+    pagination_class = PageNumberPagination
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
