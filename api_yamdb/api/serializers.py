@@ -60,8 +60,15 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 class SignUpSerializer(serializers.Serializer):
     """Регистрация нового пользователя."""
 
-    username = serializers.CharField(required=True)
-    email = serializers.EmailField(required=True)
+    username = serializers.RegexField(required=True, regex=r'^[\w.@+-]+\Z', max_length=150)
+    email = serializers.EmailField(required=True, max_length=254)
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Нельзя использовать "me" в качестве имени пользователя'
+            )
+        return value
 
 
 class TokenSerializer(serializers.Serializer):
@@ -74,9 +81,28 @@ class TokenSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели User."""
 
+    username = serializers.RegexField(regex=r'^[\w.@+-]+\Z', required=True, max_length=150)
+    email = serializers.EmailField(required=True, max_length=254)
+
     class Meta:
         model = User
         fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role',)
+
+    def validate_username(self, value):
+        if value == 'me':
+            raise serializers.ValidationError(
+                'Нельзя использовать "me" в качестве имени пользователя'
+            )
+        if User.objects.filter(username=value).exists():
+            return serializers.ValidationError(
+                'Данное имя пользователя уже существует')
+        return value
+
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            return serializers.ValidationError(
+                'Данный Email уже зарегистрирован')
+        return value
 
 
 class ReviewSerializer(serializers.ModelSerializer):
