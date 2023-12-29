@@ -1,8 +1,11 @@
+from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
 from reviews.models import Category, Genre, Title, Review, Comment
+
+User = get_user_model()
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -61,6 +64,21 @@ class SignUpSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
 
 
+class TokenSerializer(serializers.Serializer):
+    """Получение JWT-токена."""
+
+    username = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(required=True)
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор для модели User."""
+
+    class Meta:
+        model = User
+        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role',)
+
+
 class ReviewSerializer(serializers.ModelSerializer):
     """Сериализатор для модели Review."""
 
@@ -84,8 +102,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         title_id = self.context.get('view').kwargs.get('title_id')
         title = get_object_or_404(Title, pk=title_id)
         if (
-            request.method == 'POST'
-            and Review.objects.filter(title=title, author=author).exists()
+                request.method == 'POST'
+                and Review.objects.filter(title=title, author=author).exists()
         ):
             raise ValidationError('Может быть не более одного отзыва!')
         return data
