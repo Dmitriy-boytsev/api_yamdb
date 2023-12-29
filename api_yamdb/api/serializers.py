@@ -2,7 +2,7 @@ from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 
-from reviews.models import Category, Comment, Genre, Review, Title
+from reviews.models import Category, Genre, Title
 
 
 class CategorySerializer(serializers.ModelSerializer):
@@ -52,6 +52,13 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+
+
+class SignUpSerializer(serializers.Serializer):
+    """Регистрация нового пользователя."""
+
+    username = serializers.CharField(required=True)
+    email = serializers.EmailField(required=True)
 
 
 class ReviewSerializer(serializers.ModelSerializer):
