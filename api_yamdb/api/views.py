@@ -1,9 +1,51 @@
-from rest_framework import viewsets
 from django.shortcuts import get_object_or_404
+from rest_framework import filters, viewsets
+from rest_framework.pagination import LimitOffsetPagination
 
-from reviews.models import Review, Comment
-from .serializers import CommentSerializer, ReviewSerializer
-from .permissions import IsAdminAuthorModeratorOrReadOnly
+from api.mixins import CreateListDestroyViewSet
+from api.permissions import IsAdminAuthorModeratorOrReadOnly, IsAdminOrReadOnly
+from api.serializers import (
+    CategorySerializer, CommentSerializer, GenreSerializer,
+    ReviewSerializer, TitleCreateSerializer, TitleReadSerializer
+)
+from reviews.models import Category, Comment, Genre, Review, Title
+
+
+class CategoryViewSet(CreateListDestroyViewSet):
+    """Вьюсет категории."""
+
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('title',)
+    lookup_field = 'slug'
+
+
+class GenreViewSet(CreateListDestroyViewSet):
+    """Вьюсет жанра."""
+
+    queryset = Genre.objects.all()
+    serializer_class = GenreSerializer
+    permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+    filter_backends = (filters.SearchFilter,)
+    search_fields = ('title',)
+    lookup_field = 'slug'
+
+
+class TitleViewSet(viewsets.ModelViewSet):
+    """Вьюсет произведения."""
+
+    queryset = Title.objects.all()
+    permission_classes = (IsAdminOrReadOnly,)
+    pagination_class = LimitOffsetPagination
+
+    def get_serializer_class(self):
+        if self.action in ('list', 'retrieve'):
+            return TitleReadSerializer
+        return TitleCreateSerializer
 
 
 class BaseCommentReviewViewSet(viewsets.ModelViewSet):
