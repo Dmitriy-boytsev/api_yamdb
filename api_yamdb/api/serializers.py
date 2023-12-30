@@ -13,7 +13,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = '__all__'
+        exclude = ('id',)
 
 
 class GenreSerializer(serializers.ModelSerializer):
@@ -21,7 +21,7 @@ class GenreSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Genre
-        fields = '__all__'
+        exclude = ('id',)
 
 
 class TitleReadSerializer(serializers.ModelSerializer):
@@ -106,16 +106,16 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели Review."""
+    """Сериализатор отзыва."""
 
-    title = serializers.SlugRelatedField(
-        slug_field='name',
-        read_only=True
-    )
     author = serializers.SlugRelatedField(
-        slug_field='username',
-        read_only=True
+        read_only=True, slug_field='username'
     )
+
+    class Meta:
+        fields = '__all__'
+        model = Review
+        read_only_fields = ('title', 'author')
 
     def validate_score(self, value):
         if 0 > value > 10:
@@ -134,23 +134,15 @@ class ReviewSerializer(serializers.ModelSerializer):
             raise ValidationError('Может быть не более одного отзыва!')
         return data
 
-    class Meta:
-        fields = '__all__'
-        model = Review
-
 
 class CommentSerializer(serializers.ModelSerializer):
-    """Сериализатор объектов класса Comment."""
+    """Сериализатор комментария."""
 
-    review = serializers.SlugRelatedField(
-        slug_field='text',
-        read_only=True
-    )
     author = serializers.SlugRelatedField(
-        slug_field='username',
-        read_only=True
+        read_only=True, slug_field='username'
     )
 
     class Meta:
         fields = '__all__'
         model = Comment
+        read_only_fields = ('review', 'author')
