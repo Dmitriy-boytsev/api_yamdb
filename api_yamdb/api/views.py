@@ -4,7 +4,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
-from rest_framework import filters, status, viewsets
+from rest_framework import filters, status, viewsets, permissions
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import (
     LimitOffsetPagination, PageNumberPagination
@@ -168,12 +168,30 @@ class BaseCommentReviewViewSet(viewsets.ModelViewSet):
             **{f'{self.model_class.__name__.lower()}': instance}
         )
 
+    def update(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "PUT method is not allowed."},
+            status=status.HTTP_403_FORBIDDEN
+        )
+
 
 class CommentViewSet(BaseCommentReviewViewSet):
     serializer_class = CommentSerializer
     model_class = Comment
 
 
-class ReviewViewSet(BaseCommentReviewViewSet):
-    serializer_class = ReviewSerializer
+class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет для обьектов модели Review."""
+
     model_class = Review
+    serializer_class = ReviewSerializer
+    permission_classes = (
+        permissions.IsAuthenticated,
+        IsAdminAuthorModeratorOrReadOnly
+    )
+
+    def update(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "PUT method is not allowed."},
+            status=status.HTTP_403_FORBIDDEN
+        )

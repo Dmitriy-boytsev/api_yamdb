@@ -141,12 +141,7 @@ class Review(models.Model):
 
     class Meta:
         default_related_name = 'reviews'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['author', 'title'],
-                name='unique_author_title'
-            )
-        ]
+        unique_together = ('author', 'title')
         ordering = ('-pub_date',)
 
     def __str__(self):

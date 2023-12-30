@@ -60,7 +60,9 @@ class TitleCreateSerializer(serializers.ModelSerializer):
 class SignUpSerializer(serializers.Serializer):
     """Регистрация нового пользователя."""
 
-    username = serializers.RegexField(required=True, regex=r'^[\w.@+-]+\Z', max_length=150)
+    username = serializers.RegexField(
+        required=True, regex=r'^[\w.@+-]+\Z', max_length=150
+    )
     email = serializers.EmailField(required=True, max_length=254)
 
     def validate_username(self, value):
@@ -81,12 +83,16 @@ class TokenSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели User."""
 
-    username = serializers.RegexField(regex=r'^[\w.@+-]+\Z', required=True, max_length=150)
+    username = serializers.RegexField(
+        regex=r'^[\w.@+-]+\Z', required=True, max_length=150
+    )
     email = serializers.EmailField(required=True, max_length=254)
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'first_name', 'last_name', 'bio', 'role',)
+        fields = (
+            'username', 'email', 'first_name', 'last_name', 'bio', 'role',
+        )
 
     def validate_username(self, value):
         if value == 'me':
@@ -118,8 +124,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     def validate_score(self, value):
-        if 0 > value > 10:
-            raise serializers.ValidationError('Оценка от 1 до 10')
+        if not 1 <= value <= 10:
+            raise serializers.ValidationError('Оценка должна быть от 1 до 10')
         return value
 
     def validate(self, data):
