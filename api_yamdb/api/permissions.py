@@ -27,3 +27,10 @@ class IsAdminAuthorModeratorOrReadOnly(permissions.BasePermission):
                 or request.user.role == User.RoleChoices.MODERATOR
                 or obj.author == request.user
                 )
+
+
+class ReadOnlyOrAdminPermission(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return request.user and request.user.is_staff
