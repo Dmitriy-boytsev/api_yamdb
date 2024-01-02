@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Genre, Title, Review, Comment
 
@@ -84,14 +85,23 @@ class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели User."""
 
     username = serializers.RegexField(
-        regex=r'^[\w.@+-]+\Z', required=True, max_length=150
-    )
-    email = serializers.EmailField(required=True, max_length=254)
+        regex=r'^[\w.@+-]+\Z',
+        required=True, max_length=150,
+        validators=[UniqueValidator(queryset=User.objects.all())])
+    email = serializers.EmailField(
+        required=True,
+        max_length=254,
+        validators=[UniqueValidator(queryset=User.objects.all())])
 
     class Meta:
         model = User
         fields = (
-            'username', 'email', 'first_name', 'last_name', 'bio', 'role',
+            'username',
+            'email',
+            'first_name',
+            'last_name',
+            'bio',
+            'role',
         )
 
     def validate_username(self, value):
@@ -125,7 +135,9 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     def validate_score(self, value):
         if not 1 <= value <= 10:
-            raise serializers.ValidationError('Оценка должна быть от 1 до 10')
+            raise serializers.ValidationError(
+                'Оценка должна быть от 1 до 10'
+            )
         return value
 
     def validate(self, data):
@@ -135,9 +147,13 @@ class ReviewSerializer(serializers.ModelSerializer):
         title = get_object_or_404(Title, pk=title_id)
         if (
                 request.method == 'POST'
-                and Review.objects.filter(title=title, author=author).exists()
+                and Review.objects.filter(
+                    title=title, author=author
+                ).exists()
         ):
-            raise ValidationError('Может быть не более одного отзыва!')
+            raise ValidationError(
+                'Может быть не более одного отзыва!'
+            )
         return data
 
 
