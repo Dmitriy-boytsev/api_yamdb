@@ -2,6 +2,7 @@ from django.contrib.auth import get_user_model
 from rest_framework import serializers
 from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
+from rest_framework.validators import UniqueValidator
 
 from reviews.models import Category, Genre, Title, Review, Comment
 
@@ -84,9 +85,13 @@ class UserSerializer(serializers.ModelSerializer):
     """Сериализатор для модели User."""
 
     username = serializers.RegexField(
-        regex=r'^[\w.@+-]+\Z', required=True, max_length=150
-    )
-    email = serializers.EmailField(required=True, max_length=254)
+        regex=r'^[\w.@+-]+\Z',
+        required=True, max_length=150,
+        validators=[UniqueValidator(queryset=User.objects.all())])
+    email = serializers.EmailField(
+        required=True,
+        max_length=254,
+        validators=[UniqueValidator(queryset=User.objects.all())])
 
     class Meta:
         model = User
