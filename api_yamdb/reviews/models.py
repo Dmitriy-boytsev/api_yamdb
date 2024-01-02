@@ -50,7 +50,7 @@ class CustomUser(AbstractUser):
 class Category(models.Model):
     """Модель категории."""
 
-    title = models.CharField(
+    name = models.CharField(
         'Заголовок',
         max_length=200
     )
@@ -64,13 +64,13 @@ class Category(models.Model):
         verbose_name_plural = 'Категории'
 
     def __str__(self):
-        return self.title[:TITLE_LIMIT]
+        return self.name[:TITLE_LIMIT]
 
 
 class Genre(models.Model):
     """Модель жанра."""
 
-    title = models.CharField(
+    name = models.CharField(
         'Заголовок',
         max_length=200
     )
@@ -84,7 +84,7 @@ class Genre(models.Model):
         verbose_name_plural = 'Жанры'
 
     def __str__(self):
-        return self.title[:TITLE_LIMIT]
+        return self.name[:TITLE_LIMIT]
 
 
 class Title(models.Model):
@@ -141,12 +141,7 @@ class Review(models.Model):
 
     class Meta:
         default_related_name = 'reviews'
-        constraints = [
-            models.UniqueConstraint(
-                fields=['author', 'title'],
-                name='unique_author_title'
-            )
-        ]
+        unique_together = ('author', 'title')
         ordering = ('-pub_date',)
 
     def __str__(self):

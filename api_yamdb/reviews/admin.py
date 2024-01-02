@@ -5,9 +5,7 @@ from .models import Category, Comment, Genre, Review, Title, CustomUser
 
 class BaseModelAdmin(admin.ModelAdmin):
     empty_value_display = 'Отсутствует'
-
-    class Meta:
-        ordering = ['id']
+    ordering = ['id']
 
 
 @admin.register(Category)
