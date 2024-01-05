@@ -82,7 +82,7 @@ def get_jwt_token(request):
         )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-
+#
 @api_view(['GET', 'PATCH'])
 def user_profile(request):
     """Персональная страница пользователя."""
