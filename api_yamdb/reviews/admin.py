@@ -5,7 +5,7 @@ from .models import Category, Comment, Genre, Review, Title, CustomUser
 
 class BaseModelAdmin(admin.ModelAdmin):
     empty_value_display = 'Отсутствует'
-    ordering = ['id']
+    ordering = ('id',)
 
 
 @admin.register(Category)
@@ -47,7 +47,7 @@ class TitleAdmin(BaseModelAdmin):
 class UserAdmin(BaseModelAdmin):
     list_display = (
         'username', 'email', 'role', 'bio',
-        'first_name', 'last_name', 'confirmation_code'
+        'first_name', 'last_name',
     )
     search_fields = ('username', 'role',)
     list_filter = ('username',)
