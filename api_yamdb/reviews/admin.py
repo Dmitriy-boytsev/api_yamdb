@@ -44,7 +44,7 @@ class TitleAdmin(BaseModelAdmin):
 
 
 @admin.register(CustomUser)
-class UserAdmin(BaseModelAdmin):
+class CustomUserAdmin(BaseModelAdmin):
     list_display = (
         'username', 'email', 'role', 'bio',
         'first_name', 'last_name', 'confirmation_code'

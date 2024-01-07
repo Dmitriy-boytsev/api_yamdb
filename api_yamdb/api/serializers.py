@@ -4,6 +4,10 @@ from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404
 from rest_framework.validators import UniqueValidator
 
+from reviews.constants import (LIMIT_USERNAME_LENGTH,
+                               LIMIT_USER_EMAIL_LENGTH,
+                               LIMIT_USER_ROLE_LENTGH,
+                               LIMIT_NAME_LENGHT)
 from reviews.models import Category, Genre, Title, Review, Comment
 
 User = get_user_model()
@@ -62,9 +66,9 @@ class SignUpSerializer(serializers.Serializer):
     """Регистрация нового пользователя."""
 
     username = serializers.RegexField(
-        required=True, regex=r'^[\w.@+-]+\Z', max_length=150
+        required=True, regex=r'^[\w.@+-]+\Z', max_length=LIMIT_USERNAME_LENGTH
     )
-    email = serializers.EmailField(required=True, max_length=254)
+    email = serializers.EmailField(required=True, max_length=LIMIT_USER_EMAIL_LENGTH)
 
     def validate_username(self, value):
         if value == 'me':
@@ -86,11 +90,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z',
-        required=True, max_length=150,
+        required=True, max_length=LIMIT_USERNAME_LENGTH,
         validators=[UniqueValidator(queryset=User.objects.all())])
     email = serializers.EmailField(
         required=True,
-        max_length=254,
+        max_length=LIMIT_USER_EMAIL_LENGTH,
         validators=[UniqueValidator(queryset=User.objects.all())])
 
     class Meta:
@@ -148,8 +152,8 @@ class ReviewSerializer(serializers.ModelSerializer):
         if (
                 request.method == 'POST'
                 and Review.objects.filter(
-                    title=title, author=author
-                ).exists()
+            title=title, author=author
+        ).exists()
         ):
             raise ValidationError(
                 'Может быть не более одного отзыва!'

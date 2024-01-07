@@ -7,9 +7,8 @@ from api.permissions import (
 from api.serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
     ReviewSerializer, TitleCreateSerializer, TitleReadSerializer,
-    TokenSerializer, UserSerializer,
+    TokenSerializer, SignUpSerializer, UserSerializer,
 )
-from api.serializers import SignUpSerializer
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
@@ -19,10 +18,10 @@ from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (AllowAny,
-                                        IsAuthenticatedOrReadOnly)
+                                        IsAuthenticatedOrReadOnly, IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
@@ -35,68 +34,65 @@ User = get_user_model()
 @permission_classes([AllowAny])
 def signup(request):
     """Регистрация нового пользователя."""
+
     serializer = SignUpSerializer(data=request.data)
-    if serializer.is_valid():
-        username = serializer.validated_data['username']
-        email = serializer.validated_data['email']
-        try:
-            user, created = User.objects.get_or_create(
-                username=username,
-                email=email,
-            )
-            if created:
-                confirm_code = default_token_generator.make_token(user)
-                send_mail(
-                    subject='Получение кода подтверждения',
-                    message=f'Ваш код подтверждения: {confirm_code}.',
-                    from_email=settings.EMAIL_ADMIN,
-                    recipient_list=[user.email],
-                )
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response(serializer.data, status=status.HTTP_200_OK)
-        except IntegrityError:
-            return Response(
-                'Нельзя использовать данный электронный адрес!',
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data['username']
+    email = serializer.validated_data['email']
+    try:
+        user, _ = User.objects.get_or_create(
+            username=username,
+            email=email,
+        )
+
+        confirm_code = default_token_generator.make_token(user)
+        send_mail(
+            subject='Получение кода подтверждения',
+            message=f'Ваш код подтверждения: {confirm_code}.',
+            from_email=settings.EMAIL_ADMIN,
+            recipient_list=[user.email], )
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    except IntegrityError:
+        return Response(
+            'Нельзя использовать данный электронный адрес!',
+            status=status.HTTP_400_BAD_REQUEST, )
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def get_jwt_token(request):
     """Получение JWT-токена."""
+
     serializer = TokenSerializer(data=request.data)
-    if serializer.is_valid():
-        username = serializer.validated_data['username']
-        confirm_code = serializer.validated_data['confirmation_code']
-        user = get_object_or_404(User, username=username)
+    serializer.is_valid(raise_exception=True)
+    username = serializer.validated_data['username']
+    confirm_code = serializer.validated_data['confirmation_code']
+    user = get_object_or_404(User, username=username)
 
-        if default_token_generator.check_token(user, confirm_code):
-            token = AccessToken.for_user(user)
-            return Response({'token': token}, status=status.HTTP_200_OK)
-        return Response(
-            'Ошибка получения кода подтверждения. Попробуйте еще раз.',
-            status=status.HTTP_400_BAD_REQUEST
-        )
-    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    if default_token_generator.check_token(user, confirm_code):
+        token = str(AccessToken.for_user(user))
+        return Response({'token': token}, status=status.HTTP_200_OK)
+    return Response(
+        'Ошибка получения кода подтверждения. Попробуйте еще раз.',
+        status=status.HTTP_400_BAD_REQUEST)
 
 
-@api_view(['GET', 'PATCH'])
-def user_profile(request):
-    """Персональная страница пользователя."""
-    current_user = request.user
-    if request.method == 'PATCH':
-        serializer = UserSerializer(
-            current_user,
-            data=request.data,
-            partial=True,
-        )
-        serializer.is_valid(raise_exception=True)
-        serializer.save(role=current_user.role)
-    serializer = UserSerializer(current_user)
-    return Response(serializer.data, status=status.HTTP_200_OK)
+# @api_view(['GET', 'PATCH'])
+# def user_profile(request):
+#     """Персональная страница пользователя."""
+#
+#     current_user = request.user
+#     if request.method == 'PATCH':
+#         serializer = UserSerializer(
+#             current_user,
+#             data=request.data,
+#             partial=True,
+#         )
+#         serializer.is_valid(raise_exception=True)
+#         serializer.save(role=current_user.role)
+#     serializer = UserSerializer(current_user)
+#     return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class UserViewSet(ModelViewSet):
@@ -110,6 +106,26 @@ class UserViewSet(ModelViewSet):
     filter_backends = (filters.SearchFilter,)
     search_fields = ('username',)
     pagination_class = LimitOffsetPagination
+
+    @action(
+        detail=False,
+        methods=['get', 'patch'],
+        permission_classes=[IsAuthenticated],
+        url_path='me')
+    def user_profile(self, request):
+        """Редактирование собственной страницы."""
+
+        current_user = request.user
+        if request.method == 'PATCH':
+            serializer = UserSerializer(
+                current_user,
+                data=request.data,
+                partial=True,
+            )
+            serializer.is_valid(raise_exception=True)
+            serializer.save(role=current_user.role)
+        serializer = UserSerializer(current_user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class CategoryViewSet(CreateListDestroyViewSet):
