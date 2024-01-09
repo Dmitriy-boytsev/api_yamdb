@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Comment, Genre, Review, Title, CustomUser
+from .models import Category, Comment, Genre, Review, Title
 
 
 class BaseModelAdmin(admin.ModelAdmin):
@@ -41,13 +41,3 @@ class TitleAdmin(BaseModelAdmin):
     list_display = ('name', 'year', 'category', 'description')
     search_fields = ('name',)
     list_filter = ('name', 'category', 'year')
-
-
-@admin.register(CustomUser)
-class UserAdmin(BaseModelAdmin):
-    list_display = (
-        'username', 'email', 'role', 'bio',
-        'first_name', 'last_name',
-    )
-    search_fields = ('username', 'role',)
-    list_filter = ('username',)
