@@ -78,23 +78,6 @@ def get_jwt_token(request):
         status=status.HTTP_400_BAD_REQUEST)
 
 
-# @api_view(['GET', 'PATCH'])
-# def user_profile(request):
-#     """Персональная страница пользователя."""
-#
-#     current_user = request.user
-#     if request.method == 'PATCH':
-#         serializer = UserSerializer(
-#             current_user,
-#             data=request.data,
-#             partial=True,
-#         )
-#         serializer.is_valid(raise_exception=True)
-#         serializer.save(role=current_user.role)
-#     serializer = UserSerializer(current_user)
-#     return Response(serializer.data, status=status.HTTP_200_OK)
-
-
 class UserViewSet(ModelViewSet):
     """Вьюсет для работы с моделью User."""
 
