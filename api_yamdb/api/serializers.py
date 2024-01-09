@@ -7,10 +7,9 @@ from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from reviews.constants import (LIMIT_USERNAME_LENGTH,
-                               LIMIT_USER_EMAIL_LENGTH,
-                               LIMIT_USER_ROLE_LENTGH,
-                               LIMIT_NAME_LENGHT)
+                               LIMIT_USER_EMAIL_LENGTH)
 from reviews.models import Category, Genre, Title, Review, Comment
+
 
 User = get_user_model()
 
@@ -34,11 +33,8 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения произведения."""
 
+    genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    genre = GenreSerializer(
-        read_only=True,
-        many=True
-    )
     rating = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -62,6 +58,10 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+
+    def to_representation(self, title):
+        serializer = TitleReadSerializer(title)
+        return serializer.data
 
 
 class SignUpSerializer(serializers.Serializer):
