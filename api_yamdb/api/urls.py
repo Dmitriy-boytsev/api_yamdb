@@ -42,12 +42,12 @@ v1_router.register(
 )
 
 auth_path = [
-    path('auth/token/', get_jwt_token, name='get_jwt_token'),
-    path('auth/signup/', signup, name='signup'),
+    path('token/', get_jwt_token, name='get_jwt_token'),
+    path('signup/', signup, name='signup'),
 ]
 
 urlpatterns = [
     path('v1/users/me/', user_profile, name='user_profile'),
     path('v1/', include(v1_router.urls)),
-    path('v1/', include(auth_path)),
+    path('v1/auth/', include(auth_path)),
 ]
