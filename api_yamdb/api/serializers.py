@@ -1,14 +1,12 @@
 from django.contrib.auth import get_user_model
+
 from rest_framework import serializers
-from django.core.exceptions import ValidationError
-from django.shortcuts import get_object_or_404
 from rest_framework.validators import UniqueValidator
 
 from reviews.constants import (LIMIT_USERNAME_LENGTH,
-                               LIMIT_USER_EMAIL_LENGTH,
-                               LIMIT_USER_ROLE_LENTGH,
-                               LIMIT_NAME_LENGHT)
+                               LIMIT_USER_EMAIL_LENGTH)
 from reviews.models import Category, Genre, Title, Review, Comment
+
 
 User = get_user_model()
 
@@ -32,11 +30,8 @@ class GenreSerializer(serializers.ModelSerializer):
 class TitleReadSerializer(serializers.ModelSerializer):
     """Сериализатор для чтения произведения."""
 
+    genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    genre = GenreSerializer(
-        read_only=True,
-        many=True
-    )
     rating = serializers.IntegerField(read_only=True)
 
     class Meta:
@@ -60,6 +55,10 @@ class TitleCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = '__all__'
+
+    def to_representation(self, title):
+        serializer = TitleReadSerializer(title)
+        return serializer.data
 
 
 class SignUpSerializer(serializers.Serializer):
@@ -133,30 +132,18 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
         model = Review
-        read_only_fields = ('title', 'author')
-
-    def validate_score(self, value):
-        if not 1 <= value <= 10:
-            raise serializers.ValidationError(
-                'Оценка должна быть от 1 до 10'
-            )
-        return value
+        fields = ('id', 'text', 'author', 'score', 'pub_date')
+        read_only_fields = ('title',)
 
     def validate(self, data):
-        request = self.context['request']
-        author = request.user
+        if not self.context.get('request').method == 'POST':
+            return data
+        author = self.context.get('request').user
         title_id = self.context.get('view').kwargs.get('title_id')
-        title = get_object_or_404(Title, pk=title_id)
-        if (
-                request.method == 'POST'
-                and Review.objects.filter(
-            title=title, author=author
-        ).exists()
-        ):
-            raise ValidationError(
-                'Может быть не более одного отзыва!'
+        if Review.objects.filter(author=author, title=title_id).exists():
+            raise serializers.ValidationError(
+                'Нельзя оставлять более одного отзыва'
             )
         return data
 
@@ -169,6 +156,6 @@ class CommentSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
         model = Comment
-        read_only_fields = ('review', 'author')
+        fields = ('id', 'text', 'author', 'pub_date')
+        read_only_fields = ('review',)

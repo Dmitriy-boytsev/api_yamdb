@@ -1,8 +1,7 @@
 from api.filters import TitleFilter
 from api.mixins import CreateListDestroyViewSet
 from api.permissions import (
-    IsAdminAuthorModeratorOrReadOnly, IsAdminOrReadOnly, IsAdminOnly,
-
+    IsAdminAuthorModeratorOrReadOnly, IsAdminOrReadOnly, IsAdminOnly
 )
 from api.serializers import (
     CategorySerializer, CommentSerializer, GenreSerializer,
@@ -21,7 +20,8 @@ from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import (AllowAny,
-                                        IsAuthenticatedOrReadOnly, IsAuthenticated)
+                                        IsAuthenticatedOrReadOnly,
+                                        IsAuthenticated)
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
@@ -133,11 +133,6 @@ class CategoryViewSet(CreateListDestroyViewSet):
 
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
 
 
 class GenreViewSet(CreateListDestroyViewSet):
@@ -145,11 +140,6 @@ class GenreViewSet(CreateListDestroyViewSet):
 
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminOrReadOnly,)
-    pagination_class = LimitOffsetPagination
-    filter_backends = (filters.SearchFilter,)
-    search_fields = ('name',)
-    lookup_field = 'slug'
 
 
 class TitleViewSet(viewsets.ModelViewSet):
@@ -172,6 +162,8 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Вьюсет отзыва."""
+
     serializer_class = ReviewSerializer
     permission_classes = (IsAdminAuthorModeratorOrReadOnly,
                           IsAuthenticatedOrReadOnly)
@@ -188,6 +180,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Вьюсет комментария."""
+
     serializer_class = CommentSerializer
     permission_classes = (IsAdminAuthorModeratorOrReadOnly,
                           IsAuthenticatedOrReadOnly)

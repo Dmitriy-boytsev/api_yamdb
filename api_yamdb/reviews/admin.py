@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Comment, Genre, Review, Title, CustomUser
+from .models import Category, Comment, Genre, GenreTitle, Review, Title
 
 
 class BaseModelAdmin(admin.ModelAdmin):
@@ -15,25 +15,11 @@ class CategoryAdmin(BaseModelAdmin):
     list_filter = ('name',)
 
 
-@admin.register(Comment)
-class CommentAdmin(BaseModelAdmin):
-    list_display = ('review', 'text', 'author', 'pub_date')
-    search_fields = ('review',)
-    list_filter = ('review',)
-
-
 @admin.register(Genre)
 class GenreAdmin(BaseModelAdmin):
     list_display = ('name', 'slug')
     search_fields = ('name',)
     list_filter = ('name',)
-
-
-@admin.register(Review)
-class ReviewAdmin(BaseModelAdmin):
-    list_display = ('title', 'text', 'author', 'score')
-    search_fields = ('pub_date',)
-    list_filter = ('pub_date',)
 
 
 @admin.register(Title)
@@ -43,11 +29,24 @@ class TitleAdmin(BaseModelAdmin):
     list_filter = ('name', 'category', 'year')
 
 
-@admin.register(CustomUser)
-class CustomUserAdmin(BaseModelAdmin):
-    list_display = (
-        'username', 'email', 'role', 'bio',
-        'first_name', 'last_name', 'confirmation_code'
-    )
-    search_fields = ('username', 'role',)
-    list_filter = ('username',)
+@admin.register(GenreTitle)
+class GenreTitleAdmin(BaseModelAdmin):
+    """Класс настройки соответствия жанров и произведений."""
+
+    list_display = ('genre', 'title')
+    list_filter = ('genre',)
+    search_fields = ('title',)
+
+
+@admin.register(Review)
+class ReviewAdmin(BaseModelAdmin):
+    list_display = ('title', 'text', 'author', 'score')
+    search_fields = ('pub_date',)
+    list_filter = ('pub_date',)
+
+
+@admin.register(Comment)
+class CommentAdmin(BaseModelAdmin):
+    list_display = ('review', 'text', 'author', 'pub_date')
+    search_fields = ('review',)
+    list_filter = ('review',)
