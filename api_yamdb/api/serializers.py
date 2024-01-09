@@ -1,4 +1,7 @@
 from django.contrib.auth import get_user_model
+from django.core.validators import MinValueValidator, MaxValueValidator
+from django.core.exceptions import ValidationError
+from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
@@ -133,18 +136,29 @@ class ReviewSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Review
-        fields = ('id', 'text', 'author', 'score', 'pub_date')
-        read_only_fields = ('title',)
+        fields = (
+            'id', 'text', 'author', 'score', 'pub_date')
+
+    def validate_score(self, value):
+        if not 1 <= value <= 10:
+            raise serializers.ValidationError(
+                'Оценка должна быть от 1 до 10'
+            )
+        return value
+
+    score = serializers.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
 
     def validate(self, data):
-        if not self.context.get('request').method == 'POST':
-            return data
-        author = self.context.get('request').user
+        request = self.context['request']
+        author = request.user
         title_id = self.context.get('view').kwargs.get('title_id')
-        if Review.objects.filter(author=author, title=title_id).exists():
-            raise serializers.ValidationError(
-                'Нельзя оставлять более одного отзыва'
-            )
+        if request.method == 'POST':
+            title = get_object_or_404(Title, pk=title_id)
+            if Review.objects.filter(title=title, author=author).exists():
+                raise ValidationError('Может быть не более одного отзыва!')
+            data['title'] = title
         return data
 
 
@@ -157,5 +171,12 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'author', 'pub_date')
-        read_only_fields = ('review',)
+        fields = fields = ('id', 'text', 'author', 'pub_date')
+
+    def validate(self, data):
+        title_id = self.context['view'].kwargs.get('title_id')
+        review_id = self.context['view'].kwargs.get('review_id')
+        get_object_or_404(Title, pk=title_id)
+        get_object_or_404(Review, pk=review_id, title=title_id)
+        return data
+
