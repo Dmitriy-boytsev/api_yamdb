@@ -4,7 +4,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     CategoryViewSet, CommentViewSet, GenreViewSet,
     ReviewViewSet, TitleViewSet, UserViewSet,
-    get_jwt_token, signup, user_profile,
+    get_jwt_token, signup
 )
 
 app_name = 'api'
@@ -47,7 +47,6 @@ auth_path = [
 ]
 
 urlpatterns = [
-    path('v1/users/me/', user_profile, name='user_profile'),
     path('v1/', include(v1_router.urls)),
     path('v1/', include(auth_path)),
 ]

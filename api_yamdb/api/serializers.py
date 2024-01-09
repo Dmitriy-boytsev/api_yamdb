@@ -6,6 +6,10 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
+from reviews.constants import (LIMIT_USERNAME_LENGTH,
+                               LIMIT_USER_EMAIL_LENGTH,
+                               LIMIT_USER_ROLE_LENTGH,
+                               LIMIT_NAME_LENGHT)
 from reviews.models import Category, Genre, Title, Review, Comment
 
 User = get_user_model()
@@ -64,9 +68,9 @@ class SignUpSerializer(serializers.Serializer):
     """Регистрация нового пользователя."""
 
     username = serializers.RegexField(
-        required=True, regex=r'^[\w.@+-]+\Z', max_length=150
+        required=True, regex=r'^[\w.@+-]+\Z', max_length=LIMIT_USERNAME_LENGTH
     )
-    email = serializers.EmailField(required=True, max_length=254)
+    email = serializers.EmailField(required=True, max_length=LIMIT_USER_EMAIL_LENGTH)
 
     def validate_username(self, value):
         if value == 'me':
@@ -88,11 +92,11 @@ class UserSerializer(serializers.ModelSerializer):
 
     username = serializers.RegexField(
         regex=r'^[\w.@+-]+\Z',
-        required=True, max_length=150,
+        required=True, max_length=LIMIT_USERNAME_LENGTH,
         validators=[UniqueValidator(queryset=User.objects.all())])
     email = serializers.EmailField(
         required=True,
-        max_length=254,
+        max_length=LIMIT_USER_EMAIL_LENGTH,
         validators=[UniqueValidator(queryset=User.objects.all())])
 
     class Meta:
@@ -167,7 +171,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = ('id', 'text', 'author', 'pub_date')
+        fields = fields = ('id', 'text', 'author', 'pub_date')
 
     def validate(self, data):
         title_id = self.context['view'].kwargs.get('title_id')
@@ -175,3 +179,4 @@ class CommentSerializer(serializers.ModelSerializer):
         get_object_or_404(Title, pk=title_id)
         get_object_or_404(Review, pk=review_id, title=title_id)
         return data
+
