@@ -167,7 +167,7 @@ class CommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Comment
-        fields = fields = ('id', 'text', 'author', 'pub_date')
+        fields = ('id', 'text', 'author', 'pub_date')
 
     def validate(self, data):
         title_id = self.context['view'].kwargs.get('title_id')
