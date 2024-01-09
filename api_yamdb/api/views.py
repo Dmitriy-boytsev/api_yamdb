@@ -1,15 +1,3 @@
-from api.filters import TitleFilter
-from api.mixins import CreateListDestroyViewSet
-from api.permissions import (
-    IsAdminAuthorModeratorOrReadOnly, IsAdminOrReadOnly, IsAdminOnly,
-
-)
-from api.serializers import (
-    CategorySerializer, CommentSerializer, GenreSerializer,
-    ReviewSerializer, TitleCreateSerializer, TitleReadSerializer,
-    TokenSerializer, UserSerializer,
-)
-from api.serializers import SignUpSerializer
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
@@ -17,15 +5,26 @@ from django.core.mail import send_mail
 from django.db.models import Avg
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.pagination import LimitOffsetPagination
-from rest_framework.permissions import (AllowAny,
-                                        IsAuthenticatedOrReadOnly)
+from rest_framework.permissions import AllowAny, IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
+
+from api.filters import TitleFilter
+from api.mixins import CreateListDestroyViewSet
+from api.permissions import (
+    IsAdminAuthorModeratorOrReadOnly, IsAdminOnly, IsAdminOrReadOnly
+)
+from api.serializers import (
+    CategorySerializer, CommentSerializer, GenreSerializer,
+    ReviewSerializer, TitleCreateSerializer, TitleReadSerializer,
+    TokenSerializer, UserSerializer, SignUpSerializer
+)
 from reviews.models import Category, Genre, Review, Title
 
 User = get_user_model()
@@ -162,8 +161,11 @@ class ReviewViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     http_method_names = ['get', 'post', 'head', 'options', 'patch', 'delete']
 
+    def get_title(self):
+        return get_object_or_404(Title, pk=self.kwargs['title_id'])
+
     def get_queryset(self):
-        title = get_object_or_404(Title, pk=self.kwargs['title_id'])
+        title = self.get_title()
         return title.reviews.all()
 
     def perform_create(self, serializer):
@@ -178,18 +180,19 @@ class CommentViewSet(viewsets.ModelViewSet):
     pagination_class = LimitOffsetPagination
     http_method_names = ['get', 'post', 'head', 'options', 'patch', 'delete']
 
-    def get_queryset(self):
+    def get_title_and_review(self):
+        title = get_object_or_404(Title, pk=self.kwargs['title_id'])
         review = get_object_or_404(
             Review,
             pk=self.kwargs['review_id'],
-            title=self.kwargs['title_id']
+            title=title
         )
+        return title, review
+
+    def get_queryset(self):
+        _, review = self.get_title_and_review()
         return review.comments.all()
 
     def perform_create(self, serializer):
-        review = get_object_or_404(
-            Review,
-            pk=self.kwargs['review_id'],
-            title=self.kwargs['title_id']
-        )
+        title, review = self.get_title_and_review()
         serializer.save(author=self.request.user, review=review)
