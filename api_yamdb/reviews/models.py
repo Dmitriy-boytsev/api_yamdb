@@ -1,11 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
+from reviews.constants import (
+    TITLE_LIMIT, LIMIT_CATEGORY_NAME, LIMIT_GENRE_NAME
+)
 from reviews.validators import validate_year
 
 
 User = get_user_model()
-TITLE_LIMIT = 30
 
 
 class Category(models.Model):
@@ -13,11 +16,11 @@ class Category(models.Model):
 
     name = models.CharField(
         'Заголовок',
-        max_length=200
+        max_length=LIMIT_CATEGORY_NAME
     )
     slug = models.SlugField(
         'Идентификатор',
-        unique=True
+        unique=True,
     )
 
     class Meta:
@@ -34,11 +37,11 @@ class Genre(models.Model):
 
     name = models.CharField(
         'Заголовок',
-        max_length=200
+        max_length=LIMIT_GENRE_NAME
     )
     slug = models.SlugField(
         'Идентификатор',
-        unique=True
+        unique=True,
     )
 
     class Meta:
@@ -55,7 +58,7 @@ class Title(models.Model):
 
     name = models.CharField(
         'Название произведения',
-        max_length=200
+        max_length=256
     )
     year = models.PositiveIntegerField(
         'Год выхода',

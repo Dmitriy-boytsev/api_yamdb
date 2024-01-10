@@ -68,9 +68,13 @@ class SignUpSerializer(serializers.Serializer):
     """Регистрация нового пользователя."""
 
     username = serializers.RegexField(
-        required=True, regex=r'^[\w.@+-]+\Z', max_length=LIMIT_USERNAME_LENGTH
+        required=True,
+        regex=r'^[\w.@+-]+\Z',
+        max_length=LIMIT_USERNAME_LENGTH
     )
-    email = serializers.EmailField(required=True, max_length=LIMIT_USER_EMAIL_LENGTH)
+    email = serializers.EmailField(
+        required=True, max_length=LIMIT_USER_EMAIL_LENGTH
+    )
 
     def validate_username(self, value):
         if value == 'me':
@@ -137,7 +141,8 @@ class ReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
         fields = (
-            'id', 'text', 'author', 'score', 'pub_date')
+            'id', 'text', 'author', 'score', 'pub_date'
+        )
 
     def validate_score(self, value):
         if not 1 <= value <= 10:
@@ -153,12 +158,11 @@ class ReviewSerializer(serializers.ModelSerializer):
     def validate(self, data):
         request = self.context['request']
         author = request.user
-        title_id = self.context.get('view').kwargs.get('title_id')
-        if request.method == 'POST':
-            title = get_object_or_404(Title, pk=title_id)
-            if Review.objects.filter(title=title, author=author).exists():
-                raise ValidationError('Может быть не более одного отзыва!')
-            data['title'] = title
+        if request.method == 'POST' and Review.objects.filter(
+            title_id=self.context.get('view').kwargs.get('title_id'),
+            author=author
+        ).exists():
+            raise ValidationError('Может быть не более одного отзыва!')
         return data
 
 
@@ -179,4 +183,3 @@ class CommentSerializer(serializers.ModelSerializer):
         get_object_or_404(Title, pk=title_id)
         get_object_or_404(Review, pk=review_id, title=title_id)
         return data
-

@@ -1,10 +1,11 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from reviews.constants import (LIMIT_USERNAME_LENGTH,
-                               LIMIT_USER_EMAIL_LENGTH,
-                               LIMIT_USER_ROLE_LENTGH,
-                               LIMIT_NAME_LENGHT)
+from reviews.constants import (
+    LIMIT_USERNAME_LENGTH,
+    LIMIT_USER_EMAIL_LENGTH,
+    LIMIT_USER_ROLE_LENTGH,
+)
 
 
 class User(AbstractUser):
@@ -33,30 +34,21 @@ class User(AbstractUser):
         'Биография',
         blank=True,
     )
-    first_name = models.CharField(
-        'Имя', blank=True,
-        max_length=LIMIT_NAME_LENGHT
-    )
-    last_name = models.CharField(
-        'Фамилия',
-        blank=True,
-        max_length=LIMIT_NAME_LENGHT
-    )
 
     @property
     def is_admin(self):
         """Пользователь имеет права администратора."""
         return (
-                self.role == self.RoleChoices.ADMIN
-                or self.is_superuser
+            self.role == self.RoleChoices.ADMIN
+            or self.is_superuser
         )
 
     @property
     def is_moderator(self):
         """Пользователь имеет права модератора."""
         return (
-                self.role == self.RoleChoices.MODERATOR
-                or self.is_staff
+            self.role == self.RoleChoices.MODERATOR
+            or self.is_staff
         )
 
     class Meta:

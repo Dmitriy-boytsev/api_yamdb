@@ -1,6 +1,6 @@
 from django.contrib.auth import get_user_model
-from rest_framework import permissions
 
+from rest_framework import permissions
 
 User = get_user_model()
 
@@ -18,13 +18,15 @@ class IsAdminOrReadOnly(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return (
-                request.method in permissions.SAFE_METHODS
-                or request.user.is_authenticated
-                and request.user.is_admin)
+            request.method in permissions.SAFE_METHODS
+            or request.user.is_authenticated
+            and request.user.is_admin
+        )
 
 
 class IsAdminAuthorModeratorOrReadOnly(permissions.BasePermission):
-    """Право доступа администратора, модератора, автора. Иначе доступно для чтения."""
+    """Право доступа администратора, модератора, автора.
+    Иначе доступно для чтения."""
 
     def has_object_permission(self, request, view, obj):
         return (request.method in permissions.SAFE_METHODS
