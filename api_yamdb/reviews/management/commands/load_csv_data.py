@@ -68,4 +68,4 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         for key, value in MODELS.items():
             load_csv(key, value)
-        print('Загрузка выполнена успешно')
+        self.stdout.write(self.style.SUCCESS('Загрузка выполнена успешно'))

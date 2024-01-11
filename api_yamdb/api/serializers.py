@@ -1,15 +1,13 @@
 from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.core.exceptions import ValidationError
-from django.shortcuts import get_object_or_404
 
 from rest_framework import serializers
 from rest_framework.validators import UniqueValidator
 
 from reviews.constants import (LIMIT_USERNAME_LENGTH,
                                LIMIT_USER_EMAIL_LENGTH)
-from reviews.models import Category, Genre, Title, Review, Comment
-
+from reviews.models import Category, Comment, Genre, Review, Title
 
 User = get_user_model()
 
@@ -35,7 +33,7 @@ class TitleReadSerializer(serializers.ModelSerializer):
 
     genre = GenreSerializer(many=True, read_only=True)
     category = CategorySerializer(read_only=True)
-    rating = serializers.IntegerField(read_only=True)
+    rating = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = Title
@@ -137,6 +135,9 @@ class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
+    score = serializers.IntegerField(
+        validators=[MinValueValidator(1), MaxValueValidator(10)]
+    )
 
     class Meta:
         model = Review
@@ -150,10 +151,6 @@ class ReviewSerializer(serializers.ModelSerializer):
                 'Оценка должна быть от 1 до 10'
             )
         return value
-
-    score = serializers.IntegerField(
-        validators=[MinValueValidator(1), MaxValueValidator(10)]
-    )
 
     def validate(self, data):
         request = self.context['request']
@@ -176,10 +173,3 @@ class CommentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comment
         fields = fields = ('id', 'text', 'author', 'pub_date')
-
-    def validate(self, data):
-        title_id = self.context['view'].kwargs.get('title_id')
-        review_id = self.context['view'].kwargs.get('review_id')
-        get_object_or_404(Title, pk=title_id)
-        get_object_or_404(Review, pk=review_id, title=title_id)
-        return data

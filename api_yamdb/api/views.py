@@ -5,9 +5,7 @@ from django.core.mail import send_mail
 from django.db.models import Avg
 from django.db.utils import IntegrityError
 from django.shortcuts import get_object_or_404
-
 from django_filters.rest_framework import DjangoFilterBackend
-
 from rest_framework import filters, status, viewsets
 from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.pagination import LimitOffsetPagination
@@ -100,7 +98,6 @@ class UserViewSet(ModelViewSet):
         url_path='me')
     def user_profile(self, request):
         """Редактирование собственной страницы."""
-
         current_user = request.user
         if request.method == 'PATCH':
             serializer = UserSerializer(
@@ -163,7 +160,7 @@ class ReviewViewSet(viewsets.ModelViewSet):
         return title.reviews.all()
 
     def perform_create(self, serializer):
-        title = get_object_or_404(Title, pk=self.kwargs['title_id'])
+        title = self.get_title()
         serializer.save(author=self.request.user, title=title)
 
 
@@ -171,24 +168,25 @@ class CommentViewSet(viewsets.ModelViewSet):
     """Вьюсет комментария."""
 
     serializer_class = CommentSerializer
-    permission_classes = (IsAdminAuthorModeratorOrReadOnly,
-                          IsAuthenticatedOrReadOnly)
+    permission_classes = (
+        IsAdminAuthorModeratorOrReadOnly, IsAuthenticatedOrReadOnly
+    )
     pagination_class = LimitOffsetPagination
     http_method_names = ['get', 'post', 'head', 'options', 'patch', 'delete']
 
     def get_title_and_review(self):
-        title = get_object_or_404(Title, pk=self.kwargs['title_id'])
+        title = self.kwargs.get('title_id')
         review = get_object_or_404(
             Review,
             pk=self.kwargs['review_id'],
             title=title
         )
-        return title, review
+        return review
 
     def get_queryset(self):
-        _, review = self.get_title_and_review()
+        review = self.get_title_and_review()
         return review.comments.all()
 
     def perform_create(self, serializer):
-        title, review = self.get_title_and_review()
+        review = self.get_title_and_review()
         serializer.save(author=self.request.user, review=review)
