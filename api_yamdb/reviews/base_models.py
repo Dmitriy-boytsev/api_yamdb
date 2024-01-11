@@ -9,7 +9,7 @@ User = get_user_model()
 
 
 class BaseModelReviewsComment(models.Model):
-    """Абстрактная модель для коментариев и отзывов"""
+    """Абстрактная модель для комментариев и отзывов."""
 
     author = models.ForeignKey(
         User,
@@ -23,14 +23,14 @@ class BaseModelReviewsComment(models.Model):
 
     class Meta:
         abstract = True
-        ordering = ('name',)
+        ordering = ('-pub_date',)
 
-        def __str__(self):
-            return f'Текст: {self.text} . Автора: {self.author}'
+    def __str__(self):
+        return f'Текст: {self.text} . Автора: {self.author}'
 
 
 class BaseModelCategoryGenre(models.Model):
-    """Абстрактная модель для категорий и жанров"""
+    """Абстрактная модель для категорий и жанров."""
 
     name = models.CharField(
         'Заголовок',

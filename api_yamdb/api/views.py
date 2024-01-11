@@ -35,7 +35,6 @@ User = get_user_model()
 @permission_classes([AllowAny])
 def signup(request):
     """Регистрация нового пользователя."""
-
     serializer = SignUpSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data['username']
@@ -64,7 +63,6 @@ def signup(request):
 @permission_classes([AllowAny])
 def get_jwt_token(request):
     """Получение JWT-токена."""
-
     serializer = TokenSerializer(data=request.data)
     serializer.is_valid(raise_exception=True)
     username = serializer.validated_data['username']

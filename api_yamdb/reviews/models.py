@@ -4,7 +4,7 @@ from django.core.validators import (
 )
 from django.db import models
 
-from reviews.BaseModel import (
+from reviews.base_models import (
     BaseModelCategoryGenre, BaseModelReviewsComment
 )
 from reviews.constants import TITLE_LIMIT
@@ -16,7 +16,7 @@ User = get_user_model()
 class Category(BaseModelCategoryGenre):
     """Модель категории."""
 
-    class Meta:
+    class Meta(BaseModelCategoryGenre.Meta):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
 
@@ -24,7 +24,7 @@ class Category(BaseModelCategoryGenre):
 class Genre(BaseModelCategoryGenre):
     """Модель жанра."""
 
-    class Meta:
+    class Meta(BaseModelCategoryGenre.Meta):
         verbose_name = 'Жанр'
         verbose_name_plural = 'Жанры'
 
@@ -102,7 +102,7 @@ class Review(BaseModelReviewsComment):
         ]
     )
 
-    class Meta:
+    class Meta(BaseModelReviewsComment.Meta):
         verbose_name = 'Отзыв'
         verbose_name_plural = 'Отзывы'
         default_related_name = 'reviews'
@@ -123,7 +123,7 @@ class Comment(BaseModelReviewsComment):
         verbose_name='Комментарий к отзыву'
     )
 
-    class Meta:
+    class Meta(BaseModelReviewsComment.Meta):
         verbose_name = 'Комментарий'
         verbose_name_plural = 'Комментарии'
         default_related_name = 'comments'
